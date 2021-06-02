@@ -37,7 +37,7 @@ Most of the errors are caused by **wrong data format**, copying and pasting plai
 ## Parameters setting
 
   
-|  参数  |   默认值  |  说明  |
+|  Parameter  |  Default  |  Comment |
 | ---- | ---- | ---- |
 | ray-remove-rad | 10.0 | Radius for Rayleigh scattering stripe removals.
 | secray-remove-rad | 12.0 | Like above, for 2nd order Rayleigh.
