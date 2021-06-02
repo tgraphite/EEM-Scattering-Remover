@@ -1,0 +1,12 @@
+ray-remove-rad      10.0
+secray-remove-rad   12.0
+ram-remove-rad      10.0
+# Radius for rayleigh, second rayleigh and raman scattering removals.
+ram-wavenumber      3600.0
+# Raman scattering wavenumber, depends on the characteristics of solvent.
+relaxation-disp     2.0
+# Displacement for relaxation applied on points removed. Integer!
+# When a data point is removed (set to zero), the program will try to look for four neighbouring data points ---
+# [em +- (relax-disp)*(em-step), ex +- (relax-disp)*(ex-step)]
+# ---- using their mean value to fill the zero, the relaxation-disp decides where to find those neighbouring points.
+# The greater the relaxation-disp is, the more 'vague' the final figure will be, and vice versa.
