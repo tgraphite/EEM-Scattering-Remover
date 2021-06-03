@@ -1,3 +1,5 @@
+**[简体中文](https://github.com/tgraphite/EEM-SCattering-Remover/README.md) | English**
+
 ## EEM Scattering Remover (ESR) 
 
 1、Recognize Rayleigh、Raman、2nd order Rayleigh scattering stripes automatically, regardless of instruments or wavelength ranges.

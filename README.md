@@ -1,3 +1,5 @@
+**简体中文 | [English](https://github.com/tgraphite/EEM-SCattering-Remover/README.en-US.md)**
+
 ## EEM散射去除工具 (ESR) 
 
 1、自动识别Rayleigh、Raman、二级Rayleigh散射条带并切除，不受仪器型号、波长范围影响。
