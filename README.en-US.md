@@ -1,4 +1,4 @@
-**[简体中文](https://github.com/tgraphite/EEM-Scattering-Remover/README.md) | English**
+**[简体中文](https://github.com/tgraphite/EEM-Scattering-Remover/blob/main/README.md) | English**
 
 ## EEM Scattering Remover (ESR) 
 
