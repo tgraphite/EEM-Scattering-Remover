@@ -1,5 +1,6 @@
 import os
 import numpy
+import xlrd
 from matplotlib import pyplot
 from numpy.core.fromnumeric import mean
 from numpy.core.numeric import count_nonzero
@@ -7,39 +8,87 @@ from numpy.lib.npyio import save
 import re
 
 
+def read_xlsx(filename):
+    matrix_list_form = list()
+
+    try:
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0)
+        first_col_values = sheet.col_values(0)
+        start_row_index = first_col_values.index('Data points') + 1
+        end_row_index = len(first_col_values)
+
+        for row_index in range(start_row_index, end_row_index):
+            line_list_form = sheet.row_values(row_index)
+            matrix_list_form.append(line_list_form)
+
+        del book
+
+    except BaseException:
+        raise NotImplementedError
+
+    else:
+        return matrix_list_form
+
+
+def read_txt(filename):
+    matrix_list_form = list()
+
+    try:
+        file_input = open(filename, 'r')
+
+        for line in file_input:
+            line = line.replace('\t', ' ')
+            line = line.replace('\n', '')
+            line_list_form = line.split(' ')
+            matrix_list_form.append(line_list_form)
+
+        file_input.close()
+
+    except BaseException:
+        raise NotImplementedError
+
+    else:
+        return matrix_list_form
+
+
 class ESR(object):
     def __init__(self, data_input, params):
         self.data_input = data_input
         self.params = params
-        matrix_list_form = list()
 
-        if os.path.exists(data_input):
-            file_input = open(data_input, 'r')
+        data_file_extension = os.path.splitext(data_input)[1]
 
-            for line in file_input:
-                line = line.replace('\t', ' ')
-                line = line.replace('\n', '')
-                line_list_form = line.split(' ')
-                matrix_list_form.append(line_list_form)
+        if not os.path.exists(data_input):
+            raise FileNotFoundError
 
-            file_input.close()
+        if data_file_extension == '.txt':
+            matrix_list_form = read_txt(data_input)
+
+        elif data_file_extension == '.xlsx':
+            matrix_list_form = read_xlsx(data_input)
 
         else:
-            print('File not found.')
-            nothing = input()
-            exit()
+            raise NotImplementedError
 
-        if len(matrix_list_form[0]) == len(matrix_list_form[1]) - 1:
-            matrix_list_form[0] = [0.0, ] + matrix_list_form[0]
-        elif matrix_list_form[0][0] == '':
-            matrix_list_form[0][0] = '0.0'
+        try:
+            if len(matrix_list_form[0]) == len(matrix_list_form[1]) - 1:
+                matrix_list_form[0] = [0.0, ] + matrix_list_form[0]
+            elif matrix_list_form[0][0] == '':
+                matrix_list_form[0][0] = '0.0'
 
-        matrix = numpy.matrix(matrix_list_form, dtype='float32')
-        self.raw_shape = matrix.shape
-        self.matrix = matrix[1:, 1:]
+            matrix = numpy.matrix(matrix_list_form, dtype='float32')
+            self.raw_shape = matrix.shape
+            self.matrix = matrix[1:, 1:]
 
-        self.excitations = numpy.array(matrix[0, 1:])
-        self.emissions = numpy.array(matrix[1:, 0])
+            self.excitations = numpy.array(matrix[0, 1:])
+            self.emissions = numpy.array(matrix[1:, 0])
+
+        except BaseException:
+            raise NotImplementedError
+
+        else:
+            return None
 
     @property
     def removed_matrix(self):
@@ -179,43 +228,49 @@ class ESR(object):
     #     corrected_matrix = self.matrix - self.all_peaks_matrix
     #     return corrected_matrix
 
-    def heatmaps(self, maxlevel=150, silent=False):
-        title_1 = 'EEM Before Processed'
-        title_2 = 'EEM After Scattering Removal'
-        title_3 = 'EEM After Relaxation'
+    def heatmaps(self, silent=False):
+        title_1 = 'EEM Before'
+        # title_2 = 'EEM After Scattering Removal'
+        title_3 = 'EEM After Scattering Removal (and Relaxation)'
 
         x_label = 'Excitation / nm'
         y_label = 'Emission / nm'
 
         pyplot.figure(figsize=(10, 8))
-        pyplot.xlabel(x_label)
-        pyplot.ylabel(y_label)
         pyplot.subplots_adjust(left=0.1, right=0.9, top=0.8)
 
+        maxlevel = self.corrected_matrix.max()
         level_step = maxlevel / 10
+
         plot_levels = numpy.arange(0, maxlevel*1.1, level_step)
 
-        pyplot.subplot(1, 3, 1)
+        pyplot.subplot(1, 2, 1)
         [x, y] = numpy.meshgrid(self.excitations, self.emissions)
         z = self.matrix
         pyplot.contourf(x, y, z, cmap='viridis', levels=plot_levels)
         pyplot.title(title_1)
+        pyplot.xlabel(x_label)
+        pyplot.ylabel(y_label)
 
-        pyplot.subplot(1, 3, 2)
-        [x, y] = numpy.meshgrid(self.excitations, self.emissions)
-        z = self.removed_matrix
-        pyplot.contourf(x, y, z, cmap='viridis', levels=plot_levels)
-        pyplot.title(title_2)
+        # pyplot.subplot(1, 3, 2)
+        # [x, y] = numpy.meshgrid(self.excitations, self.emissions)
+        # z = self.removed_matrix
+        # pyplot.contourf(x, y, z, cmap='viridis', levels=plot_levels)
+        # pyplot.title(title_2)
 
-        pyplot.subplot(1, 3, 3)
+        pyplot.subplot(1, 2, 2)
         [x, y] = numpy.meshgrid(self.excitations, self.emissions)
         z = self.corrected_matrix
         pyplot.contourf(x, y, z, cmap='viridis', levels=plot_levels)
         pyplot.title(title_3)
+        pyplot.xlabel(x_label)
+        pyplot.ylabel(y_label)
 
         if silent:
             save_name = re.sub(r'\..*', '_esr.png', self.data_input)
             pyplot.savefig(save_name)
+            print('FINISHED: Preview picture saved to {s}'.format(
+                s=os.path.realpath(save_name)))
 
         else:
             pyplot.show()
@@ -228,11 +283,11 @@ class ESR(object):
 
         save_name = re.sub(r'\..*', '_corrected.csv', self.data_input)
         numpy.savetxt(save_name, new_matrix, delimiter=',', fmt='%.4f')
-        print('Final EEM data saved to {s}'.format(s=save_name))
+        print('FINISHED: Final EEM data saved to {s}'.format(
+            s=os.path.realpath(save_name)))
 
 
 def read_params(param_file='esr-params.txt'):
-
     default_params = {
         'ray-remove-rad': 10.0,
         'secray-remove-rad': 12.0,
@@ -261,12 +316,65 @@ def read_params(param_file='esr-params.txt'):
     return params
 
 
-def cli():
+def interactive_singlerun(data_input, params):
+    try:
+        esr_instance = ESR(data_input, params)
+        esr_instance.heatmaps()
+        esr_instance.save()
+
+        del esr_instance
+
+    except FileNotFoundError:
+        print('ERROR: File not found: {n}'.format(n=data_input))
+
+    except NotImplementedError:
+        print('ERROR: File broken or file format not supported: {n}'.format(
+            n=data_input))
+
+    print('END OF WORK, press any key to exit.')
+    input()
+    exit()
+
+
+def silent_autorun(dir_input, params):
+    os.chdir(dir_input)
+
+    for data_input in os.listdir('.'):
+        try:
+            data_file_extension = os.path.splitext(data_input)[1]
+
+            if data_file_extension == '.txt' or data_file_extension == '.xlsx':
+                esr_instance = ESR(data_input, params)
+                esr_instance.heatmaps(silent=True)
+                esr_instance.save()
+
+                del esr_instance
+
+            else:
+                continue
+
+        except FileNotFoundError:
+            print('ERROR: File not found: {n}'.format(n=data_input))
+
+        except NotImplementedError:
+            print('ERROR: File broken or file format not supported: {n}'.format(
+                n=data_input))
+
+    print('END OF WORK, press any key to exit.')
+    input()
+    exit()
+
+
+def main():
     params = read_params()
-    print('EEM Scattering Remover. Drag file path into this view.')
-    print('The file should be a space-splitted txt file, in which the first row indicates excitations and the first column indicates emissions.')
-    print('Edit esr-params.txt to change parameters.')
-    params_notification = """
+
+    main_notif = """
+    EEM Scattering Remover. Drag file or directory (silent batch mode) into this view, or input path directly.
+    The file should be a space-splitted txt file, in which the first row indicates excitations and the first column indicates emissions.
+    Edit esr-params.txt to change parameters.
+    """
+
+    params_notif = """
     Using Parameters Below:
         Rayleigh scattering removal radius:     {rayr}
         2nd Ray. scattering removal radius:     {secrayr}
@@ -274,19 +382,19 @@ def cli():
         Raman wavenumber:                       {ramw}
         Relaxation radius:                      {relxr}
     """.format(rayr=params['ray-remove-rad'], secrayr=params['secray-remove-rad'], ramr=params['ram-remove-rad'], ramw=params['ram-wavenumber'], relxr=params['relaxation-disp'])
-    print(params_notification)
 
-    data_input = input()
-    e = ESR(data_input, params)
-    e.heatmaps()
-    e.save()
+    print(main_notif)
+    print(params_notif)
 
-# def autorun(data_input):
-#     params = read_params()
-#     e = ESR(data_input, params)
-#     e.heatmaps(silent=True)
-#     e.save()
+    while True:
+        path_input = input()
+
+        if os.path.isdir(path_input):
+            silent_autorun(path_input, params)
+
+        elif os.path.isfile(path_input):
+            interactive_singlerun(path_input, params)
 
 
 if __name__ == '__main__':
-    cli()
+    main()

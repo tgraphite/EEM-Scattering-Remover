@@ -1,0 +1,6 @@
+*.csv
+*.png
+*.pdf
+*.txt
+*.xlsx
+!*.esr-params.txt

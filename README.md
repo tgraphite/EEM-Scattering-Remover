@@ -2,29 +2,43 @@
 
 1、Recognize Rayleigh、Raman、2nd order Rayleigh scattering stripes automatically, regardless of instruments or wavelength ranges.
 2、Employ relaxation algorithm to correct the edges of scattering areas removed.
-3、Easy to use and easy to tune.
+3、Easy to use and easy to tune, quick preview, Support **FULL-AUTO** silent batch mode.
 
 
 ----
 
 
 ## Usage
+0) Prepare .txt or .xlsx data file(s).   
 
-1) Double click and run esr.exe  
-2) Wait for seconds, drag the data file (.txt) into the command line view directly, or input the full path of the path instead. Enter.   
-
-The data file mentioned here has the format like below, seperated by [Space] or [Tab]：  
+The .txt data file mentioned here should in the format like below, seperated by [Space] or [Tab]：  
 
     [space or 0.0]	200	205	210	... (excitations)
     250		1.823	1.785	1.13	...
-    252		1.248	1.808	1.077	...
-    254		1.031	0.454	0.927	...	
+    252		1.823	1.785	1.13	...
+    254		1.823	1.785	1.13	...	
     ...		...	...	...	(absorptions)
     (emissions)
+    (end of file)
 
+The .xlsx data file mentioned here should in the format like below:
 
-3) The program will open a preview picture.   
-4) Close the picture and the data will be saved at [raw file name]_corrected.csv. Enter and exit.  
+| (any content) | | | | | | 
+| ---- | ---- | ---- | ---- | --- | --- |
+| ... | |
+| **Data points** | |
+| [space or 0.0] | 200 | 205 | 210 | ... | (excitations) |
+| 250 | 1.823 | 1.785 | 1.13 | ... | 
+| 252 | 1.823 | 1.785 | 1.13 | ... | 
+| 254 | 1.823 | 1.785 | 1.13 | ... | 
+| ... | ... | ... | ... | (absorptions)
+| (emissions)
+| (end of file)
+
+1) Double click and run esr.exe  
+2) Wait for seconds, drag a data file or a directory including multiple data files (full-auto silent batch mode) into the command line view directly, or input the full path instead. Press Enter to continue.   
+3) The program will open a preview picture. Close the preview directly after checked. In full-auto mode, the preview will be saved directly without showing up.
+4) The data and preview picture will be saved automatically. Press any key to exit.  
 5) Chage the parameters in esr-params.txt to tune the algorithm. If the parameter file is missing or wrong, default values will be taken.  
 
 Most of the errors are caused by **wrong data format**, copying and pasting plain text data from excel directly into a new blank txt file is suggested.   
