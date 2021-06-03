@@ -5,3 +5,4 @@
 *.xlsx
 !*.esr-params.txt
 */
+*.spec
